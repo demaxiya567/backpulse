@@ -1,2 +1,2 @@
 # backpulse
-a fluent udf for describe the procedure of dustcake regeneration
+a fluent udf for describing the procedure of dustcake regeneration on the rigid filter
