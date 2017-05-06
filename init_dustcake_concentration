@@ -1,1 +1,60 @@
+#include "udf.h"
+#define INIT_DUST_CONCENTRATION 5e-5
+#define POROUS_Z_ID 13
+#define POROUS_FACE_ID 17
+/*initial the dpm concentration*/
+DEFINE_ON_DEMAND(name)
+{
+	Domain *domain;
+	Thread *dusthread0;
+	Thread *dusthread1;
+	Thread *dustfacethread;
+	real x[ND_ND];
+	cell_t C0;
+	cell_t C1;
+	face_t f;
+	int n;
+	domain=Get_Domain(1);
+	dusthread0 = Lookup_Thread(domain, POROUS_Z_ID);
+	Message("your dusthread0 is %d \n",THREAD_ID(dusthread0));
+	dustfacethread = Lookup_Thread(domain, POROUS_FACE_ID);
+	Message("your dusthread0 is %d \n",THREAD_ID(dustfacethread));
+	C0 = F_C0(f, dustfacethread);
+	Message("your C0 is %d \n",C0);
+	C1 = F_C1(f, dustfacethread);
+	Message("your C1 is %d \n",C1);
+	dusthread1 = F_C1_THREAD(f,dustfacethread);
+	Message("your dusthread1 is %d \n",THREAD_ID(dusthread1));
+/*	begin_c_loop(C1, dusthread1)
+	{
+
+		{
+		c_face_loop(C1, dusthread1, n)
+			{
+				if (THREAD_ID(C_FACE_THREAD(C1, dusthread1, n)) == POROUS_FACE_ID)
+					{
+					C_CENTROID(x, C1, dusthread1);
+							if (sqrt(x[0]*x[0]+x[1]*x[1])>0.1){ */
+								C_DPMS_CONCENTRATION(C1, dusthread1) = INIT_DUST_CONCENTRATION;
+								C_DPMS_CONCENTRATION(C0, dusthread1) = INIT_DUST_CONCENTRATION;
+								begin_c_loop(C1, dusthread1)
+								{
+								C_CENTROID(x, C1, dusthread1);
+								{
+										c_face_loop(C1, dusthread1, n)
+											{
+												if (THREAD_ID(C_FACE_THREAD(C1, dusthread1, n)) == POROUS_FACE_ID)
+												{
+													if (x[2]>0.7&&x[2]<0.9)
+													{
+														Message("your cell id is %d \n",C_INDEX(C1,dusthread1));
+														C_DPMS_CONCENTRATION(C1, dusthread1) = INIT_DUST_CONCENTRATION;
+
+													}
+												}
+											}
+								}
+								}
+								end_c_loop(C1, dusthread1)
+}
 
